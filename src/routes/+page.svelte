@@ -1,451 +1,13 @@
 <script>
   import { onMount } from 'svelte';
-
-  const pelvisZones = [
-    { id: 'I', cx: 50, cy: 31 },
-    { id: 'II', cx: 50, cy: 44 },
-    { id: 'III', cx: 50, cy: 58 },
-    { id: 'IV', cx: 50, cy: 86 }
-  ];
-
-  const questions = {
-    hotspot: [
-      {
-        figure: '03',
-        title: 'Plano de Hodge III',
-        latin: 'Planum tertium · Spinae ischiadicae',
-        illustration: 'pelvis',
-        prompt: 'Marcá el plano que pasa por las espinas ciáticas.',
-        hint: 'Cruza las estrecheces óseas y corresponde a la estación 0 de DeLee.',
-        zones: pelvisZones,
-        correctId: 'III',
-        rationale: 'Correcto: Hodge III es el plano de las espinas ciáticas. Clínicamente, acá se considera que la cabeza está encajada.'
-      },
-      {
-        figure: '07',
-        title: 'Fontanela menor',
-        latin: 'Fonticulus posterior · Lambda',
-        illustration: 'skull',
-        prompt: 'Tocá la fontanela menor, la triangular.',
-        hint: 'Está en el occipucio, donde se encuentran la sutura sagital y las lambdoideas.',
-        zones: [
-          { id: 'small-font', cx: 50, cy: 21 },
-          { id: 'large-font', cx: 50, cy: 72 }
-        ],
-        correctId: 'small-font',
-        rationale: 'La fontanela menor es triangular y en el tacto vaginal te orienta hacia dónde apunta el occipucio.'
-      },
-      {
-        figure: '12',
-        title: 'Fontanela mayor',
-        latin: 'Fonticulus anterior · Bregma',
-        illustration: 'skull',
-        prompt: 'Marcá la fontanela mayor, la que tiene forma de rombo.',
-        hint: 'Confluyen cuatro suturas: sagital, frontal y las dos coronales.',
-        zones: [
-          { id: 'small-font', cx: 50, cy: 21 },
-          { id: 'large-font', cx: 50, cy: 72 }
-        ],
-        correctId: 'large-font',
-        rationale: 'La fontanela mayor es romboidal. Si se vuelve el punto guía al tacto, pensá en una deflexión.'
-      }
-    ],
-    pfeilnaht: [
-      {
-        figure: '21',
-        title: 'Orientación de la sutura sagital',
-        latin: 'Tacto vaginal · Sutura sagittalis',
-        position: 'vHHL',
-        prompt: 'La sutura sagital está oblicua y la fontanela menor se palpa a la izquierda y adelante. ¿Qué posición es?',
-        correctId: 'vHHL',
-        options: [
-          { id: 'vHHL', label: 'vHHL / anterior', sub: 'Occipucio anterior, mecánica favorable' },
-          { id: 'hHHL', label: 'hHHL / posterior', sub: 'Occipucio posterior, “mira estrellas”' },
-          { id: 'asynk', label: 'Asinclitismo', sub: 'Sutura desplazada hacia sacro o sínfisis' }
-        ],
-        rationale: 'La fontanela menor mira hacia el pubis materno: es una variedad anterior de occipucio.'
-      },
-      {
-        figure: '22',
-        title: 'Mira estrellas',
-        latin: 'Varietas posterior',
-        position: 'hHHL',
-        prompt: 'La fontanela menor está orientada hacia el sacro. ¿Cómo nombrás el hallazgo?',
-        correctId: 'hHHL',
-        options: [
-          { id: 'vHHL', label: 'vHHL', sub: 'El occipucio apunta hacia adelante' },
-          { id: 'hHHL', label: 'hHHL / mira estrellas', sub: 'El occipucio apunta hacia atrás' },
-          { id: 'asynk', label: 'Asinclitismo', sub: 'Desviación lateral del eje' }
-        ],
-        rationale: 'En la variedad posterior, el occipucio apunta hacia el sacro. El parto puede alargarse, aunque todavía puede rotar.'
-      },
-      {
-        figure: '23',
-        title: 'Asinclitismo',
-        latin: 'Sutura sagittalis lateralisata',
-        position: 'asynk',
-        prompt: 'La sutura sagital está claramente desplazada hacia el sacro. ¿Cuál es el diagnóstico?',
-        correctId: 'asynk',
-        options: [
-          { id: 'vHHL', label: 'vHHL', sub: 'Sutura centrada con orientación anterior' },
-          { id: 'synk', label: 'Sinclitismo', sub: 'Sutura sagital en el centro de la pelvis' },
-          { id: 'asynk', label: 'Asinclitismo', sub: 'Un parietal desciende como punto guía' }
-        ],
-        rationale: 'Una sutura sagital lateralizada es un asinclitismo. Lo importante es si se corrige con el progreso del parto.'
-      }
-    ],
-    label: [
-      {
-        figure: '08',
-        title: 'Cráneo fetal',
-        latin: 'Suturae · Fonticuli',
-        prompt: 'Asigná cada término a su punto anatómico.',
-        slots: [
-          { id: 's1', x: 50, y: 18, correctTermId: 'small-font' },
-          { id: 's2', x: 50, y: 72, correctTermId: 'large-font' },
-          { id: 's3', x: 33, y: 45, correctTermId: 'sagittal' },
-          { id: 's4', x: 24, y: 31, correctTermId: 'lambda' }
-        ],
-        terms: [
-          { id: 'small-font', label: 'F. menor' },
-          { id: 'large-font', label: 'F. mayor' },
-          { id: 'sagittal', label: 'Sutura sagital' },
-          { id: 'lambda', label: 'Sutura lambdoidea' }
-        ],
-        rationale: 'Suturas y fontanelas son la base para diagnosticar posición y actitud fetal durante el trabajo de parto.'
-      }
-    ],
-    sequence: [
-      {
-        figure: '34',
-        title: 'Distocia de hombros',
-        latin: 'Secuencia de maniobras',
-        prompt: 'Ordená las maniobras en la secuencia correcta.',
-        items: [
-          { id: 'mcroberts', label: 'Posición de McRoberts', rank: 1 },
-          { id: 'suprapubic', label: 'Presión suprapúbica', rank: 2 },
-          { id: 'woods', label: 'Woods/Rubin Rotation', rank: 3 },
-          { id: 'jacquemier', label: 'Jacquemier: brazo posterior', rank: 4 }
-        ],
-        rationale: 'Primero van las medidas menos invasivas: McRoberts y presión suprapúbica. Después vienen las rotaciones internas y el brazo posterior.'
-      }
-    ],
-    ctg: [
-      {
-        figure: '41',
-        title: 'Desaceleraciones en CTG',
-        latin: 'DIP II · Decalage',
-        prompt: 'La caída de la frecuencia llega a su nadir después del pico de la contracción. ¿Qué patrón es?',
-        correctId: 'late',
-        options: [
-          { id: 'early', label: 'Desaceleración temprana', sub: 'Espeja la contracción, suele ser compresión cefálica' },
-          { id: 'late', label: 'Desaceleración tardía / DIP II', sub: 'Nadir después del máximo de la contracción' },
-          { id: 'variable', label: 'Desaceleración variable', sub: 'Cambian la forma y el timing' }
-        ],
-        rationale: 'Las desaceleraciones tardías, desfasadas respecto de la contracción, sugieren hipoperfusión uteroplacentaria y exigen reevaluación.'
-      }
-    ]
-  };
-
-  const modes = [
-    { id: 'hotspot', figure: '01', title: 'Hotspot', sub: 'Marcá estructuras', count: '42 láminas' },
-    { id: 'pfeilnaht', figure: '02', title: 'Sutura sagital', sub: 'Pensá el tacto', count: '36 esquemas' },
-    { id: 'label', figure: '03', title: 'Rotulado', sub: 'Arrastrar y soltar', count: '28 láminas' },
-    { id: 'sequence', figure: '04', title: 'Secuencia', sub: 'Ordená maniobras', count: '14 series' },
-    { id: 'ctg', figure: '05', title: 'CTG', sub: 'Leé la curva', count: '22 trazados', wide: true }
-  ];
-
-  const intros = {
-    hotspot: {
-      titlePre: 'Localizá',
-      title: 'sin dudar',
-      intro: 'Tocá láminas anatómicas sin rótulos. La zona objetivo tiene tolerancia para dedo, pero sigue siendo clínicamente precisa.',
-      bullets: ['Planos de Hodge y estaciones de DeLee', 'Fontanelas y suturas', 'Marcadores de placenta y piso pelviano']
-    },
-    pfeilnaht: {
-      titlePre: 'Del 2D',
-      title: 'al tacto',
-      intro: 'Función central: unir recorrido de la sutura sagital, fontanela menor y orientación pélvica para llegar al diagnóstico de posición.',
-      bullets: ['Diferenciar variedades anteriores y posteriores', 'Reconocer el “mira estrellas”', 'Deducir asinclitismo visualmente']
-    },
-    label: {
-      titlePre: 'Atlas',
-      title: 'rotulado',
-      intro: 'Ubicá términos técnicos directamente sobre los hitos gráficos. Sirve para fijar topografía con seguridad.',
-      bullets: ['Láminas sin rótulos', 'Etiquetas preparables en varios idiomas', 'Feedback visual inmediato']
-    },
-    sequence: {
-      titlePre: 'Secuencias',
-      title: 'sin mezclar',
-      intro: 'Las maniobras obstétricas se evalúan como serie visual, no como texto memorizado.',
-      bullets: ['Distocia de hombros', 'Extracción instrumental', 'Incisiones de cesárea']
-    },
-    ctg: {
-      titlePre: 'Curvas',
-      title: 'a primera vista',
-      intro: 'Los recortes de CTG entrenan reconocimiento de patrón: timing, forma y consecuencia clínica.',
-      bullets: ['Desaceleraciones tempranas, variables y tardías', 'Patrones sinusoidales', 'Ubicar visualmente la decalage']
-    }
-  };
-
-  const learningSections = [
-    {
-      area: 'Bases anatómicas',
-      items: [
-        {
-          key: 'skull',
-          title: 'Cráneo fetal',
-          visual: 'skull',
-          mode: 'Hotspot · Rotulado',
-          prompt: 'Localizar suturas y fontanelas; diferenciar la fontanela menor triangular de la mayor romboidal.',
-          markers: ['Sutura sagittalis', 'Sutura coronalis', 'Sutura lambdoidea', 'Fonticulus posterior', 'Fonticulus anterior'],
-          pearl: 'La fontanela menor marca el occipucio y es el punto clave de orientación en el tacto vaginal.'
-        },
-        {
-          key: 'pelvis',
-          title: 'Pelvis ósea y planos',
-          visual: 'pelvis',
-          mode: 'Hotspot · Asociación',
-          prompt: 'Asignar Hodge I-IV, estaciones de DeLee y estrecheces óseas en el modelo sagital de pelvis.',
-          markers: ['Promontorio', 'Conjugata vera', 'Espinas ciáticas', 'Ángulo subpúbico', 'Hodge III'],
-          pearl: 'Hodge III pasa por las espinas ciáticas y corresponde clínicamente a la estación 0.'
-        },
-        {
-          key: 'pelvic-floor',
-          title: 'Capas del piso pelviano',
-          visual: 'floor',
-          mode: 'Aislar capas',
-          prompt: 'Separar capa superficial, media y profunda; visualizar el centro tendinoso del periné durante el parto.',
-          markers: ['M. bulbospongiosus', 'M. transversus perinei', 'M. puborectalis', 'M. levator ani', 'Centrum perinei'],
-          pearl: 'Para desgarros y suturas importa qué capa está abierta y cuál sigue conservada.'
-        },
-        {
-          key: 'placenta-circulation',
-          title: 'Placenta y circulación fetal',
-          visual: 'placenta',
-          mode: 'Hotspot · Comparar vasos',
-          prompt: 'Reconocer vellosidades placentarias, vasos umbilicales y shunts fetales en una vista integrada.',
-          markers: ['Ductus venosus', 'Foramen ovale', 'Ductus arteriosus', 'V. umbilicalis', 'Aa. umbilicales'],
-          pearl: 'Los shunts fetales saltean hígado y pulmones; tras el nacimiento cambian las presiones y se modifica la circulación.'
-        }
-      ]
-    },
-    {
-      area: 'Embarazo normal',
-      items: [
-        {
-          key: 'leopold',
-          title: 'Maniobras de Leopold',
-          visual: 'leopold',
-          mode: 'Asociación visual',
-          prompt: 'Reconocer la posición de las manos en las cuatro maniobras, sobre todo Pawlik y la cuarta maniobra.',
-          markers: ['Fondo uterino', 'Dorso fetal', 'Maniobra de Pawlik', 'Descenso cefálico'],
-          pearl: 'La cuarta maniobra se dirige hacia el estrecho superior y evalúa si la cabeza entró en la pelvis.'
-        },
-        {
-          key: 'ultrasound',
-          title: 'Patrones ecográficos',
-          visual: 'ultrasound',
-          mode: 'Marcar plano de medición',
-          prompt: 'Marcar TN en corte sagital de primer trimestre, más planos correctos para DBP y perímetro abdominal.',
-          markers: ['Translucencia nucal', 'Plano DBP', 'Perímetro abdominal', 'Burbuja gástrica', 'Columna'],
-          pearl: 'No mires primero el número: mirá el plano. Un plano mal elegido arruina cualquier medición.'
-        },
-        {
-          key: 'skin',
-          title: 'Cambios cutáneos y vasculares',
-          visual: 'skin',
-          mode: 'Mirada diferencial',
-          prompt: 'Diferenciar pigmentación fisiológica de signos de alarma como petequias o edema patológico.',
-          markers: ['Línea nigra', 'Cloasma gravídico', 'Estrías', 'Petequias', 'Edema'],
-          pearl: 'Los cambios fisiológicos suelen ser amplios y simétricos; el sangrado puntiforme exige contexto clínico.'
-        }
-      ]
-    },
-    {
-      area: 'Evaluación de riesgo',
-      items: [
-        {
-          key: 'placenta-previa',
-          title: 'Implantación placentaria',
-          visual: 'previa',
-          mode: 'Asociación · Detectar error',
-          prompt: 'Distinguir previa total, marginal y lateral; también accreta, increta y percreta.',
-          markers: ['Orificio cervical interno', 'Placenta previa total', 'Marginal', 'Invasión miometrial', 'Serosa'],
-          pearl: 'La relación con el orificio cervical interno define la previa; la profundidad define el espectro accreta.'
-        },
-        {
-          key: 'doppler',
-          title: 'Ondas Doppler',
-          visual: 'doppler',
-          mode: 'Lectura de curvas',
-          prompt: 'Reconocer AEDV, REDV y brain sparing a partir del componente diastólico.',
-          markers: ['Sístole', 'Diástole', 'AEDV', 'REDV', 'Resistencia ACM'],
-          pearl: 'En la arteria umbilical, el flujo diastólico ausente o reverso es un signo de alto riesgo.'
-        },
-        {
-          key: 'torch',
-          title: 'Exantemas TORCH',
-          visual: 'torch',
-          mode: 'Reconocimiento de patrón',
-          prompt: 'Diferenciar petequias neonatales, signos de catarata y lesiones vesiculares por varicela.',
-          markers: ['Blueberry muffin', 'Catarata', 'Vesículas', 'Signos de hepatoesplenomegalia'],
-          pearl: 'En infecciones importa el patrón de piel, ojos y estado general; no una manchita aislada.'
-        }
-      ]
-    },
-    {
-      area: 'Parto y puerperio',
-      items: [
-        {
-          key: 'pfeilnaht',
-          title: 'Orientaciones de sutura sagital',
-          visual: 'pfeilnaht',
-          mode: 'Quiz central · Diagnóstico de posición',
-          prompt: 'Traducir recorrido de la sutura sagital y fontanela menor en variedad anterior, posterior o asinclitismo.',
-          markers: ['Sínfisis', 'Sacro', 'Sutura sagital', 'Fontanela menor', 'Asinclitismo'],
-          pearl: 'Primero encontrá la fontanela; después pensá hacia dónde mira dentro de la pelvis materna.'
-        },
-        {
-          key: 'deflexion',
-          title: 'Actitudes de deflexión',
-          visual: 'deflexion',
-          mode: 'Reconocer vista lateral',
-          prompt: 'Distinguir presentación de bregma, frente y cara según punto guía y actitud cefálica.',
-          markers: ['Bregma', 'Frente', 'Nariz/cejas', 'Mentón', 'Deflexión máxima'],
-          pearl: 'Cuanto mayor la deflexión, mayor suele ser el diámetro obstétrico efectivo.'
-        },
-        {
-          key: 'ctg',
-          title: 'Patrones de CTG',
-          visual: 'ctg',
-          mode: 'Clasificación de curvas',
-          prompt: 'Ubicar patrones tempranos, variables, tardíos y sinusoidales con su decalage temporal.',
-          markers: ['Pico de contracción', 'Nadir', 'DIP I', 'DIP II', 'Sinusoidal'],
-          pearl: 'En el DIP II, el nadir de la frecuencia cardíaca fetal aparece después del pico de la contracción.'
-        },
-        {
-          key: 'tear',
-          title: 'Desgarros perineales',
-          visual: 'tear',
-          mode: 'Clasificar grado',
-          prompt: 'Reconocer límites entre grados I-IV, especialmente compromiso del esfínter y mucosa rectal.',
-          markers: ['Mucosa vaginal', 'Musculatura', 'M. sphincter ani externus', 'Mucosa rectal'],
-          pearl: 'El grado III empieza con compromiso del esfínter anal externo; el grado IV abre la mucosa rectal.'
-        },
-        {
-          key: 'placenta-inspection',
-          title: 'Inspección placentaria',
-          visual: 'placenta-inspection',
-          mode: 'Buscar fallas',
-          prompt: 'Reconocer cotiledones incompletos, vasos marginales hacia placenta succenturiata e infartos.',
-          markers: ['Defecto de cotiledón', 'Vaso marginal', 'Pista de succenturiata', 'Infarto', 'Cara fetal'],
-          pearl: 'Un vaso marginal cortado puede sugerir una placenta accesoria retenida.'
-        }
-      ]
-    },
-    {
-      area: 'Operaciones y maniobras',
-      items: [
-        {
-          key: 'shoulder',
-          title: 'Maniobras para distocia de hombros',
-          visual: 'shoulder',
-          mode: 'Ordenar secuencia',
-          prompt: 'Ordenar McRoberts, presión suprapúbica, Woods/Rubin y Jacquemier.',
-          markers: ['McRoberts', 'Mazzanti/Rubin', 'Woods', 'Jacquemier', 'Brazo posterior'],
-          pearl: 'No hagas presión fúndica: la presión es suprapúbica y apunta a desimpactar el hombro anterior.'
-        },
-        {
-          key: 'instrumental',
-          title: 'Extracción instrumental',
-          visual: 'instrumental',
-          mode: 'Verificar colocación',
-          prompt: 'Ubicar ramas de fórceps frontomastoideas y punto de flexión para ventosa.',
-          markers: ['Rama de fórceps', 'Frontomastoideo', 'Punto de flexión', 'Sutura sagital', 'Fontanela posterior'],
-          pearl: 'La copa de vacío va sobre el punto de flexión, no sobre una fontanela ni sobre la cara.'
-        },
-        {
-          key: 'sectio',
-          title: 'Incisiones de cesárea',
-          visual: 'sectio',
-          mode: 'Distinguir incisión',
-          prompt: 'Diferenciar Pfannenstiel vs. laparotomía mediana y Kerr vs. incisión corporal vertical clásica.',
-          markers: ['Pfannenstiel', 'Mediana', 'Kerr', 'Histerotomía corporal vertical'],
-          pearl: 'La incisión corporal longitudinal tiene riesgos distintos a la incisión transversa baja del segmento inferior.'
-        }
-      ]
-    }
-  ];
-
-  const allLearningItems = learningSections.flatMap((section) =>
-    section.items.map((item) => ({ ...item, area: section.area }))
-  );
-
-  const studyGuides = {
-    pfeilnaht: {
-      image: '/learning-images/fetal-head-orientation.png',
-      title: 'Primero orientá el mapa interno',
-      intro:
-        'Antes de diagnosticar la posición, separá tres referencias: pubis materno, sacro y fontanela menor. Recién después le ponés nombre a la variedad.',
-      steps: [
-        'La sutura sagital te da el eje; la fontanela menor te dice hacia dónde mira el occipucio.',
-        'Occipucio hacia pubis: variedad anterior. Occipucio hacia sacro: variedad posterior.',
-        'Si la sutura no queda centrada, pensá en asinclitismo antes de elegir una variedad.'
-      ]
-    },
-    hotspot: {
-      image: '/learning-images/hodge-planes-pelvis.png',
-      title: 'Leé la pelvis como una escala',
-      intro:
-        'Los planos de Hodge no son líneas decorativas: sirven para ubicar descenso fetal y traducir tacto vaginal a una posición clínica.',
-      steps: [
-        'Hodge I se apoya en promontorio y borde superior de sínfisis.',
-        'Hodge III pasa por las espinas ciáticas y equivale a estación 0.',
-        'Hodge IV apunta hacia el cóccix y describe descenso profundo.'
-      ]
-    },
-    label: {
-      image: '/learning-images/fetal-head-orientation.png',
-      title: 'Fontanelas antes que nombres',
-      intro: 'La pregunta de rotulado se vuelve fácil si primero distinguís forma: triángulo posterior, rombo anterior.',
-      steps: [
-        'Fontanela menor: triangular, posterior, marca occipucio.',
-        'Fontanela mayor: romboidal, anterior, aparece con deflexión.',
-        'La sutura sagital une ambas y ayuda a reconstruir la orientación.'
-      ]
-    },
-    sequence: {
-      image: '/learning-images/leopold-maneuvers.png',
-      title: 'Pensá en secuencia, no en lista',
-      intro: 'Las maniobras se recuerdan mejor como decisiones escalonadas: posición, presión correcta, rotación y extracción.',
-      steps: [
-        'McRoberts modifica el ángulo pélvico y suele ser el primer movimiento.',
-        'La presión es suprapúbica; la presión fúndica empeora la impactación.',
-        'Si no alcanza, pasás a rotación interna o extracción del brazo posterior.'
-      ]
-    },
-    ctg: {
-      image: '/learning-images/fetal-ultrasound.png',
-      title: 'Ubicá timing y forma',
-      intro: 'En CTG la clave no es memorizar nombres: compará contracción, nadir y recuperación.',
-      steps: [
-        'Temprana: acompaña la contracción.',
-        'Tardía: el nadir aparece después del pico de contracción.',
-        'Variable: caída abrupta, forma cambiante, típica de compresión de cordón.'
-      ]
-    },
-    daily: {
-      image: '/learning-images/fetal-head-orientation.png',
-      title: 'Repaso corto, criterio amplio',
-      intro: 'El repaso diario mezcla tacto, anatomía y curvas. Usá el estudio rápido para recordar qué mirar antes de responder.',
-      steps: [
-        'Primero orientá el hallazgo visual.',
-        'Después nombrá la estructura o patrón.',
-        'Al final conectá con la consecuencia clínica.'
-      ]
-    }
-  };
+  import { questions } from '$lib/data/questions';
+  import { modes, intros, learningSections, allLearningItems, studyGuides } from '$lib/data/content';
+  import Stat from '$lib/components/ui/Stat.svelte';
+  import FigureCaption from '$lib/components/ui/FigureCaption.svelte';
+  import Options from '$lib/components/ui/Options.svelte';
+  import Feedback from '$lib/components/ui/Feedback.svelte';
+  import ZoomTools from '$lib/components/ui/ZoomTools.svelte';
+  import Icon from '$lib/components/ui/Icon.svelte';
 
   let screen = 'onboarding';
   let mode = 'pfeilnaht';
@@ -765,12 +327,6 @@
     answer({ correct: sequenceOrder.every((item, index) => item.rank === index + 1) });
   }
 
-  function zoomFigure(event, delta) {
-    const shell = event.currentTarget.closest('.figure-shell');
-    const currentScale = Number(shell.style.getPropertyValue('--scale') || 1);
-    shell.style.setProperty('--scale', Math.min(1.7, Math.max(1, currentScale + delta)));
-  }
-
   // Generate CTG paths with baseline variability and DIP II late decelerations (decalage)
   let ctgFhrPath = '';
   let ctgUcPath = '';
@@ -836,7 +392,7 @@
             <span class="chip chip-accent">Nuevo perfil</span>
             <span class="topbar-spacer"></span>
             <button class="icon-btn" aria-label="Modo contraste" on:click={() => setTheme(theme === 'ink' ? 'parchment' : 'ink')}>
-              {@render Icon({ name: 'contrast' })}
+              <Icon name="contrast" />
             </button>
           </div>
 
@@ -862,7 +418,7 @@
               placeholder="Ej. Ana"
             />
             <button class="btn" type="submit" disabled={!nameDraft.trim()}>
-              Entrar desde cero {@render Icon({ name: 'chevron' })}
+              Entrar desde cero <Icon name="chevron" />
             </button>
           </form>
         </section>
@@ -871,12 +427,12 @@
           <div class="topbar">
             <span class="chip">{userName}</span>
             <button class="icon-btn" style="margin-left: 4px" aria-label="Restablecer perfil" on:click={resetProfile} title="Restablecer perfil">
-              {@render Icon({ name: 'user-x' })}
+              <Icon name="user-x" />
             </button>
             <span class="topbar-spacer"></span>
             <span class="chip">Racha {streak}d</span>
             <button class="icon-btn" aria-label="Modo contraste" on:click={() => setTheme(theme === 'ink' ? 'parchment' : 'ink')}>
-              {@render Icon({ name: 'contrast' })}
+              <Icon name="contrast" />
             </button>
           </div>
 
@@ -891,7 +447,7 @@
             </div>
             <div style="position: relative">
               <div class="row" style="gap: 8px; margin-bottom: 10px">
-                <span class="chip chip-accent">{@render Icon({ name: 'calendar', size: 12 })} Repaso diario</span>
+                <span class="chip chip-accent"><Icon name="calendar" size={12} /> Repaso diario</span>
                 <span class="chip">{pendingDaily} pendientes</span>
               </div>
               <h2 class="h2"><em>Sutura sagital</em>, Hodge y CTG</h2>
@@ -903,14 +459,14 @@
                 {/if}
               </p>
               <div class="progress" style="margin-bottom: 14px"><span style={`width: ${dailyPct}%`}></span></div>
-              <button class="btn" on:click={startDaily}>Estudiar y practicar {@render Icon({ name: 'chevron' })}</button>
+              <button class="btn" on:click={startDaily}>Estudiar y practicar <Icon name="chevron" /></button>
             </div>
           </article>
 
           <div class="row" style="gap: 10px; margin-bottom: 22px">
-            {@render Stat({ label: 'XP', value: xp })}
-            {@render Stat({ label: 'Aciertos', value: completedSessions ? `${accuracy}%` : '—' })}
-            {@render Stat({ label: 'Nivel', value: level })}
+            <Stat label="XP" value={xp} />
+            <Stat label="Aciertos" value={completedSessions ? `${accuracy}%` : '—'} />
+            <Stat label="Nivel" value={level} />
           </div>
 
           <div class="row" style="gap: 10px; margin-bottom: 12px">
@@ -964,7 +520,7 @@
                   {completedSessions && lowestMastery ? `Valor más bajo: ${lowestMastery.name} · ${lowestMastery.value}%` : 'Se activa después de la primera sesión.'}
                 </div>
               </div>
-              {@render Icon({ name: 'chevron' })}
+              <Icon name="chevron" />
             </div>
           </button>
 
@@ -979,14 +535,14 @@
                 <div class="h3" style="font-style: italic">Catálogo visual completo</div>
                 <div class="body-sm">{allLearningItems.length} visualizaciones en 5 áreas, con objetivos y formato de examen.</div>
               </div>
-              {@render Icon({ name: 'chevron' })}
+              <Icon name="chevron" />
             </div>
           </button>
         </section>
       {:else if screen === 'intro'}
         <section class="content">
           <div class="topbar">
-            <button class="icon-btn" aria-label="Volver" on:click={backHome}>{@render Icon({ name: 'close' })}</button>
+            <button class="icon-btn" aria-label="Volver" on:click={backHome}><Icon name="close" /></button>
           </div>
           <div class="eyebrow" style="margin: 18px 0 10px">Módulo {mode === 'daily' ? 'diario' : mode}</div>
           <h1 class="h1">{introMeta.titlePre}<br /><em>{introMeta.title}</em></h1>
@@ -1011,13 +567,13 @@
               <div class="h3" style="font-style: italic">mirar antes de responder</div>
             </div>
           </div>
-          <button class="btn" on:click={enterStudy}>Estudiar primero {@render Icon({ name: 'chevron' })}</button>
+          <button class="btn" on:click={enterStudy}>Estudiar primero <Icon name="chevron" /></button>
           <button class="btn secondary" style="margin-top: 10px" on:click={enterQuiz}>Ir directo al test</button>
         </section>
       {:else if screen === 'study'}
         <section class="content">
           <div class="topbar">
-            <button class="icon-btn" aria-label="Volver" on:click={closeStudy}>{@render Icon({ name: 'close' })}</button>
+            <button class="icon-btn" aria-label="Volver" on:click={closeStudy}><Icon name="close" /></button>
             <span class="topbar-spacer"></span>
             <span class="chip chip-accent">Estudio</span>
           </div>
@@ -1038,17 +594,17 @@
             {/each}
           </div>
 
-          <button class="btn" style="margin-top: 18px" on:click={enterQuiz}>Ahora practicar {@render Icon({ name: 'chevron' })}</button>
+          <button class="btn" style="margin-top: 18px" on:click={enterQuiz}>Ahora practicar <Icon name="chevron" /></button>
         </section>
       {:else if screen === 'quiz' && current}
         <section class="content">
           <div class="topbar">
-            <button class="icon-btn" aria-label="Cerrar" on:click={backHome}>{@render Icon({ name: 'close' })}</button>
+            <button class="icon-btn" aria-label="Cerrar" on:click={backHome}><Icon name="close" /></button>
             <div class="progress" style="flex: 1"><span style={`width: ${((qIndex + 1) / deck.length) * 100}%`}></span></div>
             <span class="chip">{qIndex + 1}/{deck.length}</span>
           </div>
 
-          {@render FigureCaption({ q: current.q })}
+          <FigureCaption q={current.q} />
 
           {#if current.mode === 'hotspot'}
             <p class="body" style="color: var(--ink); margin-bottom: 16px">{current.q.prompt}</p>
@@ -1061,7 +617,7 @@
               on:pointerup={handleHotspot}
               on:keydown={handleHotspotKey}
             >
-              {@render ZoomTools()}
+              <ZoomTools />
               <div class="figure-pan">
                 <div style="width: 88%">
                   {#if current.q.illustration === 'pelvis'}
@@ -1077,10 +633,10 @@
           {:else if current.mode === 'pfeilnaht'}
             <p class="body" style="color: var(--ink); margin-bottom: 14px">{current.q.prompt}</p>
             <div class="figure-shell" style="--height: 280px">
-              {@render ZoomTools()}
+              <ZoomTools />
               <div class="figure-pan">{@render Pfeilnaht(current.q.position, 250)}</div>
             </div>
-            {@render Options({ options: current.q.options })}
+            <Options options={current.q.options} {lastAnswer} correctId={current.q.correctId} {selected} onChoose={chooseOption} />
           {:else if current.mode === 'label'}
             <p class="body" style="color: var(--ink); margin-bottom: 14px">{current.q.prompt}</p>
             <div class="card" style="position: relative; padding: 12px; margin-bottom: 16px">
@@ -1127,10 +683,10 @@
             <div class="figure-shell" style="--height: 235px">
               <div class="figure-pan">{@render CTGStrip()}</div>
             </div>
-            {@render Options({ options: current.q.options })}
+            <Options options={current.q.options} {lastAnswer} correctId={current.q.correctId} {selected} onChoose={chooseOption} />
           {/if}
 
-          {@render Feedback()}
+          <Feedback {sheetOpen} {lastAnswer} rationale={current.q.rationale} buttonLabel={qIndex >= deck.length - 1 ? 'Resultado' : 'Seguir'} onNext={nextQuestion} />
         </section>
       {:else if screen === 'results'}
         <section class="content">
@@ -1139,9 +695,9 @@
           <p class="body">La sesión actualiza XP, porcentaje de aciertos y el atlas visual. Repetí los módulos con zonas rojas.</p>
           <div class="card" style="padding: 18px; margin: 20px 0">
             <div class="row" style="gap: 12px">
-              {@render Stat({ label: 'XP', value: `+${answers.filter(Boolean).length * 15 + (answers.length - answers.filter(Boolean).length) * 3}` })}
-              {@render Stat({ label: 'Racha', value: `${streak}d` })}
-              {@render Stat({ label: 'Aciertos', value: `${accuracy}%` })}
+              <Stat label="XP" value={`+${answers.filter(Boolean).length * 15 + (answers.length - answers.filter(Boolean).length) * 3}`} />
+              <Stat label="Racha" value={`${streak}d`} />
+              <Stat label="Aciertos" value={`${accuracy}%`} />
             </div>
           </div>
           <button class="btn" on:click={backHome}>Volver al inicio</button>
@@ -1150,9 +706,9 @@
       {:else if screen === 'heatmap'}
         <section class="content">
           <div class="topbar">
-            <button class="icon-btn" aria-label="Volver" on:click={backHome}>{@render Icon({ name: 'close' })}</button>
+            <button class="icon-btn" aria-label="Volver" on:click={backHome}><Icon name="close" /></button>
             <span class="topbar-spacer"></span>
-            <button class="icon-btn" aria-label="Modo contraste" on:click={() => setTheme(theme === 'ink' ? 'parchment' : 'ink')}>{@render Icon({ name: 'contrast' })}</button>
+            <button class="icon-btn" aria-label="Modo contraste" on:click={() => setTheme(theme === 'ink' ? 'parchment' : 'ink')}><Icon name="contrast" /></button>
           </div>
           <div class="eyebrow" style="margin: 18px 0 10px">Mapa anatómico</div>
           <h1 class="h1">Dónde tu ojo<br /><em>todavía duda</em></h1>
@@ -1179,7 +735,7 @@
       {:else if screen === 'atlas'}
         <section class="content">
           <div class="topbar">
-            <button class="icon-btn" aria-label="Volver" on:click={backHome}>{@render Icon({ name: 'close' })}</button>
+            <button class="icon-btn" aria-label="Volver" on:click={backHome}><Icon name="close" /></button>
             <span class="topbar-spacer"></span>
             <span class="chip">{visibleLearningItems.length}/{allLearningItems.length}</span>
           </div>
@@ -1191,9 +747,9 @@
           </p>
           <div class="card" style="padding: 14px; margin-bottom: 14px">
             <div class="row" style="gap: 12px">
-              {@render Stat({ label: 'Láminas', value: allLearningItems.length })}
-              {@render Stat({ label: 'Áreas', value: learningSections.length })}
-              {@render Stat({ label: 'Progreso', value: `${dailyDone}/12` })}
+              <Stat label="Láminas" value={allLearningItems.length} />
+              <Stat label="Áreas" value={learningSections.length} />
+              <Stat label="Progreso" value={`${dailyDone}/12`} />
             </div>
           </div>
           <div class="area-tabs" aria-label="Filtrar por área">
@@ -1227,74 +783,6 @@
     </div>
   </main>
 </div>
-
-{#snippet Stat({ label, value })}
-  <div class="card" style="flex: 1; padding: 12px; min-width: 0">
-    <div class="label" style="font-size: 9px">{label}</div>
-    <div class="h3" style="font-style: italic; overflow-wrap: anywhere">{value}</div>
-  </div>
-{/snippet}
-
-{#snippet FigureCaption({ q })}
-  <div class="row" style="gap: 10px; margin: 8px 0 12px">
-    <span class="chip">Fig. {q.figure}</span>
-    <div style="flex: 1">
-      <div class="h3">{q.title}</div>
-      <div class="label" style="font-size: 9px">{q.latin}</div>
-    </div>
-  </div>
-{/snippet}
-
-{#snippet Options({ options })}
-  <div class="col" style="gap: 10px; margin-top: 18px">
-    {#each options as option, index}
-      <button
-        class:correct={lastAnswer && option.id === current.q.correctId}
-        class:wrong={lastAnswer && selected === option.id && option.id !== current.q.correctId}
-        class="choice"
-        disabled={!!lastAnswer}
-        on:click={() => chooseOption(option)}
-      >
-        <span class="marker">{String.fromCharCode(65 + index)}</span>
-        <span>
-          <span style="display: block; font-family: var(--f-display); font-size: 17px; font-style: italic">{option.label}</span>
-          <span class="body-sm">{option.sub}</span>
-        </span>
-      </button>
-    {/each}
-  </div>
-{/snippet}
-
-{#snippet Feedback()}
-  <div class:open={sheetOpen} class="sheet">
-    {#if lastAnswer}
-      <div class="chip" class:chip-accent={lastAnswer.correct} style="margin-bottom: 10px">
-        {lastAnswer.correct ? 'Correcto' : 'Volvé a mirar'}
-      </div>
-      <h2 class="h2">{lastAnswer.correct ? 'Bien ahí.' : 'Ese hallazgo no cierra.'}</h2>
-      <p class="body-sm">{current.q.rationale}</p>
-      <button class="btn" on:click={nextQuestion}>{qIndex >= deck.length - 1 ? 'Resultado' : 'Seguir'}</button>
-    {/if}
-  </div>
-{/snippet}
-
-{#snippet ZoomTools()}
-  <div class="zoom-tools" role="toolbar" tabindex="-1" aria-label="Controles de zoom" on:pointerup|stopPropagation>
-    <button aria-label="Acercar" on:click={(event) => zoomFigure(event, 0.18)}>+</button>
-    <button aria-label="Alejar" on:click={(event) => zoomFigure(event, -0.18)}>−</button>
-  </div>
-{/snippet}
-
-{#snippet Icon({ name, size = 16 })}
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    {#if name === 'close'}<path d="M5 5l14 14M19 5L5 19" />{/if}
-    {#if name === 'chevron'}<path d="M9 6l6 6-6 6" />{/if}
-    {#if name === 'calendar'}<rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 9h16M9 3v4M15 3v4" />{/if}
-    {#if name === 'contrast'}<circle cx="12" cy="12" r="8" /><path d="M12 4v16" />{/if}
-    {#if name === 'user-x'}<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="17" y1="8" x2="22" y2="13" /><line x1="22" y1="8" x2="17" y2="13" />{/if}
-  </svg>
-{/snippet}
-
 {#snippet MiniVisual(kind)}
   <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true">
     <rect x="1" y="1" width="42" height="42" rx="9" fill="var(--bg-2)" stroke="var(--hairline)" />
