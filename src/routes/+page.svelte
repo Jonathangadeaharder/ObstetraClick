@@ -9,46 +9,47 @@
   import ZoomTools from '$lib/components/ui/ZoomTools.svelte';
   import Icon from '$lib/components/ui/Icon.svelte';
 
-  let screen = 'onboarding';
-  let mode = 'pfeilnaht';
-  let deck = [];
-  let qIndex = 0;
-  let answers = [];
-  let selected = null;
-  let lastAnswer = null;
-  let sheetOpen = false;
-  let tap = null;
-  let theme = 'parchment';
-  let userName = '';
-  let nameDraft = '';
-  let xp = 0;
-  let streak = 0;
-  let accuracy = 0;
-  let dailyDone = 0;
-  let completedSessions = 0;
-  let sequenceOrder = [];
-  let placements = {};
-  let selectedArea = 'Todas';
-  let hydrated = false;
-  let studyFirst = true;
-  let modeMastery = {
+  let screen = $state('onboarding');
+  let mode = $state('pfeilnaht');
+  let deck = $state([]);
+  let qIndex = $state(0);
+  let answers = $state([]);
+  let selected = $state(null);
+  let lastAnswer = $state(null);
+  let sheetOpen = $state(false);
+  let tap = $state(null);
+  let theme = $state('parchment');
+  let userName = $state('');
+  let nameDraft = $state('');
+  let xp = $state(0);
+  let streak = $state(0);
+  let accuracy = $state(0);
+  let dailyDone = $state(0);
+  let completedSessions = $state(0);
+  let sequenceOrder = $state([]);
+  let placements = $state({});
+  let selectedArea = $state('Todas');
+  let hydrated = $state(false);
+  let studyFirst = $state(true);
+  let modeMastery = $state({
     pfeilnaht: 0,
     hotspot: 0,
     label: 0,
     sequence: 0,
     ctg: 0
-  };
+  });
 
-  $: current = deck[qIndex];
-  $: dailyPct = Math.round((dailyDone / 12) * 100);
-  $: introMeta = intros[mode === 'daily' ? 'pfeilnaht' : mode] || intros.pfeilnaht;
-  $: studyGuide = studyGuides[mode] || studyGuides.pfeilnaht;
-  $: visibleLearningItems =
-    selectedArea === 'Todas' ? allLearningItems : allLearningItems.filter((item) => item.area === selectedArea);
-  $: areaOptions = ['Todas', ...learningSections.map((section) => section.area)];
-  $: pendingDaily = Math.max(0, 12 - dailyDone);
-  $: level = Math.max(1, Math.floor(xp / 120) + 1);
-  $: lowestMastery = (() => {
+  let current = $derived(deck[qIndex]);
+  let dailyPct = $derived(Math.round((dailyDone / 12) * 100));
+  let introMeta = $derived(intros[mode === 'daily' ? 'pfeilnaht' : mode] || intros.pfeilnaht);
+  let studyGuide = $derived(studyGuides[mode] || studyGuides.pfeilnaht);
+  let visibleLearningItems = $derived(
+    selectedArea === 'Todas' ? allLearningItems : allLearningItems.filter((item) => item.area === selectedArea)
+  );
+  let areaOptions = $derived(['Todas', ...learningSections.map((section) => section.area)]);
+  let pendingDaily = $derived(Math.max(0, 12 - dailyDone));
+  let level = $derived(Math.max(1, Math.floor(xp / 120) + 1));
+  let lowestMastery = $derived.by(() => {
     if (!completedSessions) return null;
     let minMode = null;
     let minVal = Infinity;
@@ -66,7 +67,7 @@
       }
     }
     return { name: modeNames[minMode] || minMode, value: minVal };
-  })();
+  });
 
   onMount(() => {
     const saved = localStorage.getItem('obstetraclick-progress');
@@ -97,12 +98,14 @@
     hydrated = true;
   });
 
-  $: if (hydrated) {
-    localStorage.setItem(
-      'obstetraclick-progress',
-      JSON.stringify({ userName, xp, streak, accuracy, dailyDone, completedSessions, theme, selectedArea, modeMastery, studyFirst })
-    );
-  }
+  $effect(() => {
+    if (hydrated) {
+      localStorage.setItem(
+        'obstetraclick-progress',
+        JSON.stringify({ userName, xp, streak, accuracy, dailyDone, completedSessions, theme, selectedArea, modeMastery, studyFirst })
+      );
+    }
+  });
 
   function setTheme(value) {
     theme = value;
@@ -328,8 +331,8 @@
   }
 
   // Generate CTG paths with baseline variability and DIP II late decelerations (decalage)
-  let ctgFhrPath = '';
-  let ctgUcPath = '';
+  let ctgFhrPath = $state('');
+  let ctgUcPath = $state('');
   function generateCtgPaths() {
     const fhrPoints = [];
     const ucPoints = [];
@@ -391,7 +394,7 @@
           <div class="topbar">
             <span class="chip chip-accent">Nuevo perfil</span>
             <span class="topbar-spacer"></span>
-            <button class="icon-btn" aria-label="Modo contraste" on:click={() => setTheme(theme === 'ink' ? 'parchment' : 'ink')}>
+            <button class="icon-btn" aria-label="Modo contraste" onclick={() => setTheme(theme === 'ink' ? 'parchment' : 'ink')}>
               <Icon name="contrast" />
             </button>
           </div>
@@ -408,7 +411,7 @@
             </p>
           </div>
 
-          <form class="name-form" on:submit|preventDefault={saveProfile}>
+          <form class="name-form" onsubmit={(e) => { e.preventDefault(); saveProfile(); }}>
             <label class="label" for="display-name">Nombre visible</label>
             <input
               id="display-name"
@@ -426,12 +429,12 @@
         <section class="content">
           <div class="topbar">
             <span class="chip">{userName}</span>
-            <button class="icon-btn" style="margin-left: 4px" aria-label="Restablecer perfil" on:click={resetProfile} title="Restablecer perfil">
+            <button class="icon-btn" style="margin-left: 4px" aria-label="Restablecer perfil" onclick={resetProfile} title="Restablecer perfil">
               <Icon name="user-x" />
             </button>
             <span class="topbar-spacer"></span>
             <span class="chip">Racha {streak}d</span>
-            <button class="icon-btn" aria-label="Modo contraste" on:click={() => setTheme(theme === 'ink' ? 'parchment' : 'ink')}>
+            <button class="icon-btn" aria-label="Modo contraste" onclick={() => setTheme(theme === 'ink' ? 'parchment' : 'ink')}>
               <Icon name="contrast" />
             </button>
           </div>
@@ -459,7 +462,7 @@
                 {/if}
               </p>
               <div class="progress" style="margin-bottom: 14px"><span style={`width: ${dailyPct}%`}></span></div>
-              <button class="btn" on:click={startDaily}>Estudiar y practicar <Icon name="chevron" /></button>
+              <button class="btn" onclick={startDaily}>Estudiar y practicar <Icon name="chevron" /></button>
             </div>
           </article>
 
@@ -476,13 +479,13 @@
           </div>
 
           <div class="segmented-control" style="margin-bottom: 16px">
-            <button class:active={studyFirst} on:click={() => studyFirst = true}>Estudiar primero</button>
-            <button class:active={!studyFirst} on:click={() => studyFirst = false}>Evaluar directo</button>
+            <button class:active={studyFirst} onclick={() => studyFirst = true}>Estudiar primero</button>
+            <button class:active={!studyFirst} onclick={() => studyFirst = false}>Evaluar directo</button>
           </div>
 
           <div class="mode-grid" style="margin-bottom: 24px">
-            {#each modes as item}
-              <button class:wide={item.wide} class="mode-card" on:click={() => startMode(item.id)}>
+            {#each modes as item (item.id)}
+              <button class:wide={item.wide} class="mode-card" onclick={() => startMode(item.id)}>
                 <div class="mode-figure">
                   <div class="mode-figure-inner">
                     {#if item.id === 'hotspot'}
@@ -511,7 +514,7 @@
             {/each}
           </div>
 
-          <button class="card" style="width: 100%; border: 0.5px solid var(--hairline); padding: 14px; text-align: left; color: var(--ink); cursor: pointer" on:click={openHeatmap}>
+          <button class="card" style="width: 100%; border: 0.5px solid var(--hairline); padding: 14px; text-align: left; color: var(--ink); cursor: pointer" onclick={openHeatmap}>
             <div class="row" style="gap: 14px">
               <div style="width: 66px">{@render HeatmapFigure()}</div>
               <div style="flex: 1">
@@ -524,7 +527,7 @@
             </div>
           </button>
 
-          <button class="card atlas-entry" on:click={openAtlas}>
+          <button class="card atlas-entry" onclick={openAtlas}>
             <div class="row" style="gap: 14px">
               <div class="atlas-stack">
                 <span>{@render MiniVisual('skull')}</span>
@@ -542,7 +545,7 @@
       {:else if screen === 'intro'}
         <section class="content">
           <div class="topbar">
-            <button class="icon-btn" aria-label="Volver" on:click={backHome}><Icon name="close" /></button>
+            <button class="icon-btn" aria-label="Volver" onclick={backHome}><Icon name="close" /></button>
           </div>
           <div class="eyebrow" style="margin: 18px 0 10px">Módulo {mode === 'daily' ? 'diario' : mode}</div>
           <h1 class="h1">{introMeta.titlePre}<br /><em>{introMeta.title}</em></h1>
@@ -550,7 +553,7 @@
           <div class="card" style="padding: 14px; margin-bottom: 14px">
             <div class="eyebrow" style="margin-bottom: 10px">En esta sesión</div>
             <div class="col" style="gap: 11px">
-              {#each introMeta.bullets as bullet, index}
+              {#each introMeta.bullets as bullet, index (index)}
                 <div class="row" style="gap: 12px; align-items: flex-start">
                   <span style="font-family: var(--f-display); color: var(--accent); font-style: italic">{String(index + 1).padStart(2, '0')}</span>
                   <span class="body-sm" style="color: var(--ink)">{bullet}</span>
@@ -567,13 +570,13 @@
               <div class="h3" style="font-style: italic">mirar antes de responder</div>
             </div>
           </div>
-          <button class="btn" on:click={enterStudy}>Estudiar primero <Icon name="chevron" /></button>
-          <button class="btn secondary" style="margin-top: 10px" on:click={enterQuiz}>Ir directo al test</button>
+          <button class="btn" onclick={enterStudy}>Estudiar primero <Icon name="chevron" /></button>
+          <button class="btn secondary" style="margin-top: 10px" onclick={enterQuiz}>Ir directo al test</button>
         </section>
       {:else if screen === 'study'}
         <section class="content">
           <div class="topbar">
-            <button class="icon-btn" aria-label="Volver" on:click={closeStudy}><Icon name="close" /></button>
+            <button class="icon-btn" aria-label="Volver" onclick={closeStudy}><Icon name="close" /></button>
             <span class="topbar-spacer"></span>
             <span class="chip chip-accent">Estudio</span>
           </div>
@@ -586,7 +589,7 @@
           <p class="body" style="margin: 14px 0 18px">{studyGuide.intro}</p>
 
           <div class="study-steps">
-            {#each studyGuide.steps as step, index}
+            {#each studyGuide.steps as step, index (index)}
               <article class="card row" style="gap: 12px; padding: 14px">
                 <span class="study-index">{String(index + 1).padStart(2, '0')}</span>
                 <p class="body-sm" style="margin: 0; color: var(--ink)">{step}</p>
@@ -594,12 +597,12 @@
             {/each}
           </div>
 
-          <button class="btn" style="margin-top: 18px" on:click={enterQuiz}>Ahora practicar <Icon name="chevron" /></button>
+          <button class="btn" style="margin-top: 18px" onclick={enterQuiz}>Ahora practicar <Icon name="chevron" /></button>
         </section>
       {:else if screen === 'quiz' && current}
         <section class="content">
           <div class="topbar">
-            <button class="icon-btn" aria-label="Cerrar" on:click={backHome}><Icon name="close" /></button>
+            <button class="icon-btn" aria-label="Cerrar" onclick={backHome}><Icon name="close" /></button>
             <div class="progress" style="flex: 1"><span style={`width: ${((qIndex + 1) / deck.length) * 100}%`}></span></div>
             <span class="chip">{qIndex + 1}/{deck.length}</span>
           </div>
@@ -614,8 +617,8 @@
               role="button"
               tabindex="0"
               aria-label="Tocar gráfico hotspot"
-              on:pointerup={handleHotspot}
-              on:keydown={handleHotspotKey}
+              onpointerup={handleHotspot}
+              onkeydown={handleHotspotKey}
             >
               <ZoomTools />
               <div class="figure-pan">
@@ -641,29 +644,29 @@
             <p class="body" style="color: var(--ink); margin-bottom: 14px">{current.q.prompt}</p>
             <div class="card" style="position: relative; padding: 12px; margin-bottom: 16px">
               {@render FetalSkull()}
-              {#each current.q.slots as slot}
+              {#each current.q.slots as slot (slot.id)}
                 <select
                   class="dd-slot"
                   class:filled={!!placements[slot.id]}
                   style={`left:${slot.x}%; top:${slot.y}%; transform: translate(-50%, -50%)`}
                   disabled={!!lastAnswer}
                   value={placements[slot.id] || ''}
-                  on:change={(event) => placeTerm(slot.id, event.currentTarget.value)}
+                  onchange={(event) => placeTerm(slot.id, event.currentTarget.value)}
                 >
                   <option value="">...</option>
-                  {#each current.q.terms as term}
+                  {#each current.q.terms as term (term.id)}
                     <option value={term.id}>{term.label}</option>
                   {/each}
                 </select>
               {/each}
             </div>
             <div class="row" style="gap: 8px; flex-wrap: wrap">
-              {#each current.q.terms as term}<span class="dd-tile">{term.label}</span>{/each}
+              {#each current.q.terms as term (term.id)}<span class="dd-tile">{term.label}</span>{/each}
             </div>
           {:else if current.mode === 'sequence'}
             <p class="body" style="color: var(--ink); margin-bottom: 14px">{current.q.prompt}</p>
             <div class="col" style="gap: 10px">
-              {#each sequenceOrder as item, index}
+              {#each sequenceOrder as item, index (item.id)}
                 <div class="sequence-card">
                   <div>{@render ManeuverThumb(item.id)}</div>
                   <div>
@@ -671,13 +674,13 @@
                     <div class="body-sm">Posición {index + 1}</div>
                   </div>
                   <div class="col" style="gap: 5px">
-                    <button class="icon-btn" aria-label="Subir" on:click={() => moveSequence(index, -1)}>↑</button>
-                    <button class="icon-btn" aria-label="Bajar" on:click={() => moveSequence(index, 1)}>↓</button>
+                    <button class="icon-btn" aria-label="Subir" onclick={() => moveSequence(index, -1)}>↑</button>
+                    <button class="icon-btn" aria-label="Bajar" onclick={() => moveSequence(index, 1)}>↓</button>
                   </div>
                 </div>
               {/each}
             </div>
-            <button class="btn" style="margin-top: 16px" on:click={submitSequence}>Chequear orden</button>
+            <button class="btn" style="margin-top: 16px" onclick={submitSequence}>Chequear orden</button>
           {:else if current.mode === 'ctg'}
             <p class="body" style="color: var(--ink); margin-bottom: 14px">{current.q.prompt}</p>
             <div class="figure-shell" style="--height: 235px">
@@ -700,15 +703,15 @@
               <Stat label="Aciertos" value={`${accuracy}%`} />
             </div>
           </div>
-          <button class="btn" on:click={backHome}>Volver al inicio</button>
-          <button class="btn secondary" style="margin-top: 10px" on:click={openHeatmap}>Abrir atlas</button>
+          <button class="btn" onclick={backHome}>Volver al inicio</button>
+          <button class="btn secondary" style="margin-top: 10px" onclick={openHeatmap}>Abrir atlas</button>
         </section>
       {:else if screen === 'heatmap'}
         <section class="content">
           <div class="topbar">
-            <button class="icon-btn" aria-label="Volver" on:click={backHome}><Icon name="close" /></button>
+            <button class="icon-btn" aria-label="Volver" onclick={backHome}><Icon name="close" /></button>
             <span class="topbar-spacer"></span>
-            <button class="icon-btn" aria-label="Modo contraste" on:click={() => setTheme(theme === 'ink' ? 'parchment' : 'ink')}><Icon name="contrast" /></button>
+            <button class="icon-btn" aria-label="Modo contraste" onclick={() => setTheme(theme === 'ink' ? 'parchment' : 'ink')}><Icon name="contrast" /></button>
           </div>
           <div class="eyebrow" style="margin: 18px 0 10px">Mapa anatómico</div>
           <h1 class="h1">Dónde tu ojo<br /><em>todavía duda</em></h1>
@@ -721,7 +724,7 @@
             ['Rotulado de estructuras', modeMastery.label, 'Identificar hitos en cráneo y pelvis'],
             ['Secuencia de maniobras', modeMastery.sequence, 'Ordenar McRoberts, Rubin, etc.'],
             ['Decalage en CTG', modeMastery.ctg, 'Reconocer DIP II con seguridad']
-          ] as row}
+          ] as row (row[0])}
             <div class="atlas-row">
               <span class="chip">{row[1]}%</span>
               <div>
@@ -735,7 +738,7 @@
       {:else if screen === 'atlas'}
         <section class="content">
           <div class="topbar">
-            <button class="icon-btn" aria-label="Volver" on:click={backHome}><Icon name="close" /></button>
+            <button class="icon-btn" aria-label="Volver" onclick={backHome}><Icon name="close" /></button>
             <span class="topbar-spacer"></span>
             <span class="chip">{visibleLearningItems.length}/{allLearningItems.length}</span>
           </div>
@@ -753,12 +756,12 @@
             </div>
           </div>
           <div class="area-tabs" aria-label="Filtrar por área">
-            {#each areaOptions as area}
-              <button class:active={selectedArea === area} on:click={() => (selectedArea = area)}>{area}</button>
+            {#each areaOptions as area (area)}
+              <button class:active={selectedArea === area} onclick={() => (selectedArea = area)}>{area}</button>
             {/each}
           </div>
           <div class="learning-list">
-            {#each visibleLearningItems as item}
+            {#each visibleLearningItems as item (item.title)}
               <article class="learning-card">
                 <div class="learning-visual">{@render LearningVisual(item.visual)}</div>
                 <div class="learning-copy">
@@ -769,7 +772,7 @@
                   <h2 class="h2" style="font-size: 25px">{item.title}</h2>
                   <p class="body-sm">{item.prompt}</p>
                   <div class="marker-grid">
-                    {#each item.markers as marker}
+                    {#each item.markers as marker (marker)}
                       <span>{marker}</span>
                     {/each}
                   </div>
@@ -887,7 +890,7 @@
     <!-- DeLee Scale along the descent path, centered at station 0 / ischial spines (147, 208) -->
     <g opacity="0.8" stroke="currentColor" stroke-width="1">
       <line x1="124" y1="146" x2="170" y2="270" stroke-dasharray="2 2" stroke-opacity="0.4" />
-      {#each [-3, -2, -1, 0, 1, 2, 3] as tick}
+      {#each [-3, -2, -1, 0, 1, 2, 3] as tick (tick)}
         {@const tx = 147 + tick * 7.67}
         {@const ty = 208 + tick * 20.67}
         {@const isZero = tick === 0}
@@ -902,7 +905,7 @@
     </g>
 
     {#if showPlanes}
-      {#each [{y:112,id:'I'}, {y:157,id:'II'}, {y:208,id:'III'}, {y:310,id:'IV'}] as plane}
+      {#each [{y:112,id:'I'}, {y:157,id:'II'}, {y:208,id:'III'}, {y:310,id:'IV'}] as plane (plane.id)}
         <g opacity={answer && answer !== plane.id ? 0.24 : 1}>
           <!-- Oblique lines parallel to the pelvic inlet (slope -0.6 centered at x=155) -->
           <line x1="60" y1={plane.y + 57} x2="250" y2={plane.y - 57} stroke={answer === plane.id ? 'var(--accent-3)' : 'currentColor'} stroke-width={answer === plane.id ? 2 : 1} stroke-dasharray={answer === plane.id ? '0' : '4 4'} stroke-opacity={answer === plane.id ? 1 : 0.45} />
@@ -1084,17 +1087,17 @@
 
     <!-- Time grids (vertical lines, every 1 min = 60 units, start at x=40) -->
     <!-- Bold grids at x = 40, 100, 160, 220, 280, 340 -->
-    {#each [40, 100, 160, 220, 280, 340] as vx}
+    {#each [40, 100, 160, 220, 280, 340] as vx (vx)}
       <line x1={vx} y1="0" x2={vx} y2="175" stroke="currentColor" stroke-opacity="0.25" stroke-width="1.2" />
     {/each}
     <!-- Thin grids at x = 70, 130, 190, 250, 310, 370 -->
-    {#each [70, 130, 190, 250, 310, 370] as vx}
+    {#each [70, 130, 190, 250, 310, 370] as vx (vx)}
       <line x1={vx} y1="0" x2={vx} y2="175" stroke="currentColor" stroke-opacity="0.1" stroke-dasharray="2 2" />
     {/each}
 
     <!-- Horizontal Grid lines for FHR (bpm): 180, 160, 140, 120, 100 -->
     <!-- y values: 180=15, 160=30, 140=45, 120=60, 100=75 -->
-    {#each [{y:15, val:'180'}, {y:30, val:'160'}, {y:45, val:'140'}, {y:60, val:'120'}, {y:75, val:'100'}] as grid}
+    {#each [{y:15, val:'180'}, {y:30, val:'160'}, {y:45, val:'140'}, {y:60, val:'120'}, {y:75, val:'100'}] as grid (grid.val)}
       <line x1="40" y1={grid.y} x2="380" y2={grid.y} stroke="currentColor" stroke-opacity={grid.val === '120' || grid.val === '160' ? 0.18 : 0.08} stroke-width={grid.val === '120' || grid.val === '160' ? 1.2 : 0.8} />
       <text x="32" y={grid.y + 3} text-anchor="end" font-family="var(--f-mono)" font-size="8" fill="currentColor" opacity="0.6">{grid.val}</text>
     {/each}
@@ -1102,7 +1105,7 @@
 
     <!-- Horizontal Grid lines for UC (mmHg): 100, 50, 0 -->
     <!-- y values: 100=100, 50=122.5, 0=145 -->
-    {#each [{y:100, val:'100'}, {y:122.5, val:'50'}, {y:145, val:'0'}] as grid}
+    {#each [{y:100, val:'100'}, {y:122.5, val:'50'}, {y:145, val:'0'}] as grid (grid.val)}
       <line x1="40" y1={grid.y} x2="380" y2={grid.y} stroke="currentColor" stroke-opacity="0.08" stroke-width="0.8" />
       <text x="32" y={grid.y + 3} text-anchor="end" font-family="var(--f-mono)" font-size="8" fill="currentColor" opacity="0.6">{grid.val}</text>
     {/each}
@@ -1164,7 +1167,7 @@
 {#snippet PlacentaCirculation()}
   <svg viewBox="0 0 340 220" width="100%" style="display:block; color: var(--line)">
     <ellipse cx="92" cy="105" rx="54" ry="78" fill="color-mix(in oklab, var(--accent) 20%, var(--bg-card))" stroke="currentColor" />
-    {#each Array(7) as _, i}
+    {#each Array(7) as _, i (i)}
       <path d={`M92 105 C${62 + i * 10} ${70 + (i % 2) * 22}, ${50 + i * 15} ${130 - (i % 3) * 16}, ${48 + i * 14} ${158 - (i % 2) * 22}`} fill="none" stroke="var(--accent)" stroke-width="2" />
     {/each}
     <path d="M145 105 C190 92 205 95 232 112" fill="none" stroke="var(--accent-2)" stroke-width="8" stroke-linecap="round" />
@@ -1179,7 +1182,7 @@
 
 {#snippet Leopold()}
   <svg viewBox="0 0 340 220" width="100%" style="display:block; color: var(--line)">
-    {#each [0, 1, 2, 3] as step}
+    {#each [0, 1, 2, 3] as step (step)}
       <g transform={`translate(${22 + step * 78}, 30)`}>
         <ellipse cx="34" cy="76" rx="28" ry="48" fill="var(--bg-card)" stroke="currentColor" />
         <ellipse cx="34" cy="76" rx="11" ry="20" fill="none" stroke="var(--accent)" />
@@ -1211,7 +1214,7 @@
     <rect x="126" y="24" width="88" height="160" rx="16" fill="color-mix(in oklab, var(--accent-2) 16%, var(--bg-card))" stroke="currentColor" />
     <path d="M150 72 C164 54 188 58 194 78 C186 101 158 97 150 72Z" fill="var(--accent-2)" opacity="0.45" />
     <rect x="234" y="24" width="88" height="160" rx="16" fill="var(--bg-card)" stroke="currentColor" />
-    {#each Array(16) as _, i}
+    {#each Array(16) as _, i (i)}
       <circle cx={252 + (i % 4) * 14} cy={56 + Math.floor(i / 4) * 24} r={2 + (i % 3)} fill={i % 5 === 0 ? 'var(--bad)' : 'var(--accent)'} opacity="0.82" />
     {/each}
     <text x="62" y="203" text-anchor="middle" font-family="var(--f-mono)" font-size="9">LINEA</text>
@@ -1222,7 +1225,7 @@
 
 {#snippet PlacentaPrevia()}
   <svg viewBox="0 0 340 220" width="100%" style="display:block; color: var(--line)">
-    {#each ['lateralis', 'marginalis', 'totalis'] as label, i}
+    {#each ['lateralis', 'marginalis', 'totalis'] as label, i (label)}
       <g transform={`translate(${24 + i * 104}, 18)`}>
         <path d="M48 8 C84 20 84 76 70 112 C64 132 58 150 48 176 C38 150 32 132 26 112 C12 76 12 20 48 8Z" fill="none" stroke="currentColor" />
         <rect x="38" y="148" width="20" height="36" rx="9" fill="var(--bg-2)" stroke="currentColor" />
@@ -1236,7 +1239,7 @@
 
 {#snippet Doppler()}
   <svg viewBox="0 0 340 220" width="100%" style="display:block; color: var(--line)">
-    {#each ['normal', 'AEDV', 'REDV'] as label, r}
+    {#each ['normal', 'AEDV', 'REDV'] as label, r (label)}
       <g transform={`translate(20, ${28 + r * 58})`}>
         <line x1="0" y1="36" x2="300" y2="36" stroke="currentColor" stroke-opacity="0.25" />
         <path d={r === 0 ? 'M0 35 C18 0 34 0 46 35 C70 28 88 28 104 35 C122 0 140 0 152 35 C178 28 192 28 210 35 C230 0 248 0 260 35' : r === 1 ? 'M0 35 C20 0 36 0 48 35 C75 35 90 35 106 35 C126 0 143 0 156 35 C182 35 195 35 212 35 C232 0 250 0 262 35' : 'M0 35 C20 0 36 0 48 35 C72 49 92 50 106 35 C126 0 143 0 156 35 C180 50 198 49 212 35 C232 0 250 0 262 35'} fill="none" stroke={r === 0 ? 'var(--accent-3)' : r === 1 ? 'var(--warn)' : 'var(--bad)'} stroke-width="2.4" />
@@ -1249,7 +1252,7 @@
 {#snippet Torch()}
   <svg viewBox="0 0 340 220" width="100%" style="display:block; color: var(--line)">
     <circle cx="95" cy="90" r="54" fill="var(--bg-card)" stroke="currentColor" />
-    {#each Array(22) as _, i}
+    {#each Array(22) as _, i (i)}
       <circle cx={62 + (i % 6) * 13} cy={62 + Math.floor(i / 6) * 17} r="3" fill="var(--bad)" opacity="0.8" />
     {/each}
     <circle cx="78" cy="82" r="7" fill="none" stroke="var(--accent)" stroke-width="2" />
@@ -1272,7 +1275,7 @@
 
 {#snippet Deflexion()}
   <svg viewBox="0 0 340 220" width="100%" style="display:block; color: var(--line)">
-    {#each ['Bregma', 'Frente', 'Cara'] as label, i}
+      {#each ['Bregma', 'Frente', 'Cara'] as label, i (label)}
       <g transform={`translate(${28 + i * 102}, 28)`}>
         <path d="M22 132 Q54 152 84 132" fill="none" stroke="currentColor" />
         <ellipse cx="54" cy={i === 0 ? 76 : i === 1 ? 70 : 64} rx="28" ry="34" transform={`rotate(${i === 0 ? 14 : i === 1 ? 34 : 58} 54 76)`} fill="none" stroke="currentColor" stroke-width="1.5" />
@@ -1286,7 +1289,7 @@
 
 {#snippet PerinealTears()}
   <svg viewBox="0 0 340 220" width="100%" style="display:block; color: var(--line)">
-    {#each ['I', 'II', 'III', 'IV'] as grade, i}
+      {#each ['I', 'II', 'III', 'IV'] as grade, i (grade)}
       <g transform={`translate(${18 + i * 80}, 24)`}>
         <ellipse cx="36" cy="58" rx="22" ry="30" fill="none" stroke="currentColor" />
         <circle cx="36" cy="126" r="22" fill="none" stroke="currentColor" />
@@ -1302,7 +1305,7 @@
 {#snippet PlacentaInspection()}
   <svg viewBox="0 0 340 220" width="100%" style="display:block; color: var(--line)">
     <ellipse cx="128" cy="106" rx="78" ry="68" fill="color-mix(in oklab, var(--accent) 22%, var(--bg-card))" stroke="currentColor" />
-    {#each Array(11) as _, i}
+    {#each Array(11) as _, i (i)}
       <path d={`M128 106 L${72 + (i % 5) * 28} ${58 + Math.floor(i / 5) * 54}`} stroke="currentColor" stroke-opacity="0.35" />
     {/each}
     <path d="M164 126 Q186 116 190 142 Q176 157 156 146Z" fill="var(--bg-card)" stroke="var(--bad)" stroke-width="2" />
