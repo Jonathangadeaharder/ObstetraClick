@@ -24,7 +24,7 @@ Aplicación de entrenamiento visual obstétrico. Láminas interactivas, hotspots
 
 ## Estructura
 
-```
+```text
 src/
   app.html                # HTML shell (lang="es-AR")
   routes/
