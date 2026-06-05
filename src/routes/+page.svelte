@@ -51,8 +51,6 @@
   let level = $derived(Math.max(1, Math.floor(xp / 120) + 1));
   let lowestMastery = $derived.by(() => {
     if (!completedSessions) return null;
-    let minMode = null;
-    let minVal = Infinity;
     const modeNames = {
       pfeilnaht: 'Sutura sagital',
       hotspot: 'Hotspots anatómicos',
@@ -60,12 +58,11 @@
       sequence: 'Secuencia de maniobras',
       ctg: 'Desaceleraciones en CTG'
     };
-    for (const [key, val] of Object.entries(modeMastery)) {
-      if (val < minVal) {
-        minVal = val;
-        minMode = key;
-      }
-    }
+    const [minMode, minVal] = Object.entries(modeMastery).reduce(
+      ([currentMode, currentVal], [key, val]) =>
+        val < currentVal ? [key, val] : [currentMode, currentVal],
+      [null, Infinity]
+    );
     return { name: modeNames[minMode] || minMode, value: minVal };
   });
 
