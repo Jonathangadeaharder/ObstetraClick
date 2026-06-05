@@ -39,16 +39,16 @@ export type StudyGuide = {
 export type LearningItemWithArea = LearningItem & { area: string };
 
 export const modes: Mode[] = [
-	{ id: 'hotspot', figure: '01', title: 'Hotspot', sub: 'Marcá estructuras', count: '42 láminas' },
-	{ id: 'pfeilnaht', figure: '02', title: 'Sutura sagital', sub: 'Pensá el tacto', count: '36 esquemas' },
-	{ id: 'label', figure: '03', title: 'Rotulado', sub: 'Arrastrar y soltar', count: '28 láminas' },
-	{ id: 'sequence', figure: '04', title: 'Secuencia', sub: 'Ordená maniobras', count: '14 series' },
+	{ id: 'hotspot', figure: '01', title: 'Hotspot', sub: 'Marcá estructuras', count: '3 láminas' },
+	{ id: 'pfeilnaht', figure: '02', title: 'Sutura sagital', sub: 'Pensá el tacto', count: '3 esquemas' },
+	{ id: 'label', figure: '03', title: 'Rotulado', sub: 'Arrastrar y soltar', count: '1 lámina' },
+	{ id: 'sequence', figure: '04', title: 'Secuencia', sub: 'Ordená maniobras', count: '1 serie' },
 	{
 		id: 'ctg',
 		figure: '05',
 		title: 'CTG',
 		sub: 'Leé la curva',
-		count: '22 trazados',
+		count: '1 trazado',
 		wide: true
 	}
 ];
